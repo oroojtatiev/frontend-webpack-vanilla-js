@@ -11,10 +11,16 @@ class App {
   foundLetters: string[] = []
   randomizedLetters: string[] = []
   gameLimit: number = 6
+  mistakeLimit: number = 3
+  mistakeCount: number = 0
 
   init() {
     this.setRandomWord()
-    this.renderButtons()
+    const randomizedLetters = this.getRandomLetters()
+    this.randomizedLetters = randomizedLetters
+    this.renderButtons(randomizedLetters)
+    this.addEventListeners()
+    this.renderQuestionNumber()
   }
 
   renderQuestionNumber() {
@@ -37,23 +43,22 @@ class App {
       this.setRandomWord()
     } else {
       this.currentWord = newRandomWord
-      this.clearButtons()
-      this.foundLetters = []
-      this.renderButtons()
-      this.addEventListeners()
-      this.renderQuestionNumber()
     }
   }
 
-  renderButtons() {
+  getRandomLetters() {
     const letters = this.currentWord.split('')
-    const randomizedLetters = shuffle(letters)
-    const buttonArrayHtml = randomizedLetters.map((el, idx) =>
-      renderButton(el, idx)
+    return shuffle(letters)
+  }
+
+  renderButtons(letters: string[], renderAsError?: boolean) {
+    this.mistakeCount = 0
+
+    let buttonArrayHtml = letters.map((el, idx) =>
+      renderButton(el, idx, renderAsError)
     )
     const elButtons = document.getElementById('buttons')
     elButtons.innerHTML = buttonArrayHtml.join('')
-    this.randomizedLetters = randomizedLetters
   }
 
   addEventListeners() {
@@ -81,19 +86,41 @@ class App {
 
     const index = idx ? idx : this.findFirstIndex(letter)
 
-    if (this.currentWord[guessLetterIndex] === letter) {
+    const isLetterCorrect = this.currentWord[guessLetterIndex] === letter
+    const isWordCompleted = guessLetterIndex === this.currentWord.length - 1
+
+    if (isLetterCorrect) {
       this.foundLetters.push(letter)
       this.removeLetterFromList(letter, index)
       this.addLetterToResult(letter)
 
-      const isWordCompleted = guessLetterIndex === this.currentWord.length - 1
-
       if (isWordCompleted) {
         this.doneWords.push(this.currentWord)
         this.setRandomWord()
+        this.clearButtons()
+
+        const randomizedLetters = this.getRandomLetters()
+        this.randomizedLetters = randomizedLetters
+        this.renderButtons(randomizedLetters)
+        this.addEventListeners()
+        this.foundLetters = []
       }
+
+      this.mistakeCount = 0
     } else {
       this.showError(letter, index)
+      this.mistakeCount++
+      if (this.mistakeCount === this.mistakeLimit) {
+        const lettersArray = this.currentWord.split('')
+        this.renderButtons(lettersArray, true)
+        this.addEventListeners()
+
+        const buttons = document.querySelectorAll('.buttons__item')
+
+        setTimeout(() => {
+          buttons.forEach(el => el.classList.remove('buttons__item_err'))
+        }, 3000)
+      }
     }
   }
 
@@ -113,7 +140,13 @@ class App {
 
   showError(letter: string, idx: number) {
     const el = document.getElementById(`letter-${letter}-${idx}`)
-    el?.classList.add('buttons__item_err')
+
+    if (el) {
+      el.classList.add('buttons__item_err')
+      setTimeout(() => {
+        el.classList.remove('buttons__item_err')
+      }, 3000)
+    }
   }
 
   clearButtons() {

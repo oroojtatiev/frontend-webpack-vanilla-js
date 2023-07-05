@@ -1,6 +1,7 @@
-export function renderButton(letter: string, idx?: number) {
+export function renderButton(letter: string, idx?: number, renderAsError?: boolean) {
+  const styles = renderAsError ? "buttons__item buttons__item_err" : "buttons__item"
   return `
-    <div id="letter-${letter}-${idx}" class="buttons__item">
+    <div id="letter-${letter}-${idx}" class="${styles}">
       ${letter}
     </div>
   `
