@@ -6,14 +6,15 @@ import { renderGameIsOver } from './layouts/gameIsOver'
 
 class App {
   questionNumber: number = 0
-  doneWords: string[] = []
-  currentWordFoundLetters: string[] = []
   currentWord: string = null
+  doneWords: string[] = []
+  foundLetters: string[] = []
+  randomizedLetters: string[] = []
+  gameLimit: number = 6
 
   init() {
     this.setRandomWord()
     this.renderButtons()
-    this.addListenersToButtons()
   }
 
   renderQuestionNumber() {
@@ -26,7 +27,7 @@ class App {
     const randomNum = getRandomInt(0, words.length - 1)
     const newRandomWord = words[randomNum]
 
-    if (this.doneWords.length === words.length) {
+    if (this.doneWords.length === this.gameLimit) {
       this.renderGameIsOver()
       this.clearButtons()
       return
@@ -37,9 +38,9 @@ class App {
     } else {
       this.currentWord = newRandomWord
       this.clearButtons()
-      this.currentWordFoundLetters = []
+      this.foundLetters = []
       this.renderButtons()
-      this.addListenersToButtons()
+      this.addEventListeners()
       this.renderQuestionNumber()
     }
   }
@@ -52,9 +53,10 @@ class App {
     )
     const elButtons = document.getElementById('buttons')
     elButtons.innerHTML = buttonArrayHtml.join('')
+    this.randomizedLetters = randomizedLetters
   }
 
-  addListenersToButtons() {
+  addEventListeners() {
     const buttons = document.querySelectorAll('.buttons__item')
     buttons.forEach((el: HTMLDivElement, idx: number) => {
       el.addEventListener(
@@ -63,14 +65,25 @@ class App {
         false
       )
     })
+
+    document.addEventListener(
+      'keydown',
+      (event) => {
+        const name = event.key
+        this.selectLetter(name)
+      },
+      false
+    )
   }
 
-  selectLetter(letter: string, idx: number) {
-    const guessLetterIndex = this.currentWordFoundLetters.length
+  selectLetter(letter: string, idx?: number) {
+    const guessLetterIndex = this.foundLetters.length
+
+    const index = idx ? idx : this.findFirstIndex(letter)
 
     if (this.currentWord[guessLetterIndex] === letter) {
-      this.currentWordFoundLetters.push(letter)
-      this.removeLetterFromList(letter, idx)
+      this.foundLetters.push(letter)
+      this.removeLetterFromList(letter, index)
       this.addLetterToResult(letter)
 
       const isWordCompleted = guessLetterIndex === this.currentWord.length - 1
@@ -80,7 +93,7 @@ class App {
         this.setRandomWord()
       }
     } else {
-      this.showError(letter, idx)
+      this.showError(letter, index)
     }
   }
 
@@ -91,7 +104,11 @@ class App {
 
   removeLetterFromList(letter: string, idx: number) {
     const el = document.getElementById(`letter-${letter}-${idx}`)
-    el.remove()
+    el?.remove()
+  }
+
+  findFirstIndex(letter: string) {
+    return this.randomizedLetters.indexOf(letter)
   }
 
   showError(letter: string, idx: number) {
