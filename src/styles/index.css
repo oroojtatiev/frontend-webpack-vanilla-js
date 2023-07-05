@@ -2,6 +2,16 @@ body {
   font-family: 'Arial', sans-serif;
 }
 
+@keyframes showError {
+  from {
+    background-color: royalblue;
+  }
+  to {
+    background-color: red;
+    border: 5px solid pink;
+  }
+}
+
 .container {
   display: flex;
   flex-direction: column;
@@ -47,10 +57,6 @@ body {
 }
 
 .buttons__item_err {
-  background: red;
-  border: 5px solid pink;
-}
-
-.buttons__item_err:hover {
-  background: darkred;
+  animation-name: showError;
+  animation-duration: 3s;
 }
