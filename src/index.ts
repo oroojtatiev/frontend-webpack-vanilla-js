@@ -2,6 +2,7 @@ import { renderButton } from './layouts/button'
 import { getRandomInt, shuffle } from './functions'
 import { words } from './data'
 import './styles/index.css'
+import { renderGameIsOver } from './layouts/gameIsOver'
 
 class App {
   questionNumber: number = 0
@@ -24,6 +25,12 @@ class App {
   setRandomWord() {
     const randomNum = getRandomInt(0, words.length - 1)
     const newRandomWord = words[randomNum]
+
+    if (this.doneWords.length === words.length) {
+      this.renderGameIsOver()
+      this.clearButtons()
+      return
+    }
 
     if (this.doneWords.includes(newRandomWord)) {
       this.setRandomWord()
@@ -66,7 +73,10 @@ class App {
       this.removeLetterFromList(letter, idx)
       this.addLetterToResult(letter)
 
-      if (guessLetterIndex === this.currentWord.length - 1) {
+      const isWordCompleted = guessLetterIndex === this.currentWord.length - 1
+
+      if (isWordCompleted) {
+        this.doneWords.push(this.currentWord)
         this.setRandomWord()
       }
     } else {
@@ -92,6 +102,11 @@ class App {
   clearButtons() {
     const buttons = document.querySelectorAll('.buttons__item')
     buttons.forEach((el: HTMLDivElement) => el.remove())
+  }
+
+  renderGameIsOver() {
+    const el = document.getElementById('gameIsOver')
+    el.innerHTML = renderGameIsOver()
   }
 }
 
