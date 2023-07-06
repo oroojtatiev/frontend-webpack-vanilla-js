@@ -6,15 +6,13 @@ export function getRandomInt(min, max): number {
 
 export function shuffle(array: string[]): string[] {
   const newArray = [...array]
+  const length = newArray.length
 
-  let currentIndex = array.length,
-    randomIndex
+  for (let start = 0; start < length; start++) {
+    const randomPosition = Math.floor((newArray.length - start) * Math.random())
+    const randomItem = newArray.splice(randomPosition, 1)
 
-  while (currentIndex != 0) {
-    randomIndex = Math.floor(Math.random() * currentIndex)
-    currentIndex--
-
-    ;[newArray[currentIndex], newArray[randomIndex]] = [newArray[randomIndex], newArray[currentIndex]]
+    newArray.push(...randomItem)
   }
 
   return newArray
