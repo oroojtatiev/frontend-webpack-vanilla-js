@@ -3,6 +3,8 @@ import {getRandomInt, shuffle} from './functions'
 import {words} from './data'
 import './styles/index.css'
 import {renderGameIsOver} from './layouts/gameIsOver'
+import {MostMistakeWord, RenderStatisticsData} from './types'
+import {renderStatistics} from './layouts/statistics'
 
 class App {
   questionNumber: number = 0
@@ -13,6 +15,12 @@ class App {
   gameLimit: number = 6
   mistakeLimit: number = 3
   mistakeCount: number = 0
+  statisticsWordCountWithoutMistake: number = 0
+  statisticsMistakeCount: number = 0
+  statisticsMostMistakeWord: MostMistakeWord = {
+    name: null,
+    mistakeCount: 0,
+  }
 
   public init(): void {
     this.setRandomWord()
@@ -34,6 +42,7 @@ class App {
 
     if (this.doneWords.length === this.gameLimit) {
       this.renderGameIsOver()
+      this.renderStatistics()
       this.clearButtons()
       return
     }
@@ -89,6 +98,10 @@ class App {
       this.addLetterToResult(letter)
 
       if (isWordCompleted) {
+        if (this.mistakeCount === 0 && this.foundLetters.length > 0) {
+          this.statisticsWordCountWithoutMistake++
+        }
+
         this.doneWords.push(this.currentWord)
         this.setRandomWord()
         this.clearButtons()
@@ -101,6 +114,8 @@ class App {
       }
     } else {
       this.mistakeCount++
+      this.statisticsMistakeCount++
+
       if (this.mistakeCount === this.mistakeLimit) {
         const originalLetters = this.currentWord.split('')
         this.randomLetters = originalLetters
@@ -114,10 +129,17 @@ class App {
         setTimeout(() => {
           buttons.forEach((el) => el.classList.remove('buttons__item_err'))
         }, 3000)
-
-        this.mistakeCount = 0
       } else {
         this.showError(letter, index)
+      }
+
+      const isWordWithMostMistake = this.mistakeCount > this.statisticsMostMistakeWord.mistakeCount
+
+      if (!this.statisticsMostMistakeWord || isWordWithMostMistake) {
+        this.statisticsMostMistakeWord = {
+          name: this.currentWord,
+          mistakeCount: this.mistakeCount,
+        }
       }
     }
   }
@@ -163,6 +185,16 @@ class App {
   private renderGameIsOver(): void {
     const el = document.getElementById('gameIsOver')
     el.innerHTML = renderGameIsOver()
+  }
+
+  private renderStatistics(): void {
+    const data: RenderStatisticsData = {
+      statisticsWordCountWithoutMistake: this.statisticsWordCountWithoutMistake,
+      statisticsMostMistakeWord: this.statisticsMostMistakeWord,
+      statisticsMistakeCount: this.statisticsMistakeCount,
+    }
+    const el = document.getElementById('statistics')
+    el.innerHTML = renderStatistics(data)
   }
 }
 
