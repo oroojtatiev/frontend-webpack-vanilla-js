@@ -14,10 +14,7 @@ export function shuffle(array: string[]): string[] {
     randomIndex = Math.floor(Math.random() * currentIndex)
     currentIndex--
 
-    [newArray[currentIndex], newArray[randomIndex]] = [
-      newArray[randomIndex],
-      newArray[currentIndex],
-    ]
+    ;[newArray[currentIndex], newArray[randomIndex]] = [newArray[randomIndex], newArray[currentIndex]]
   }
 
   return newArray
