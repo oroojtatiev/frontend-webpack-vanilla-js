@@ -1,10 +1,10 @@
-export function getRandomInt(min, max) {
+export function getRandomInt(min, max): number {
   min = Math.ceil(min)
   max = Math.floor(max)
   return Math.floor(Math.random() * (max - min + 1)) + min
 }
 
-export function shuffle(array: string[]) {
+export function shuffle(array: string[]): string[] {
   const newArray = [...array]
 
   let currentIndex = array.length,
