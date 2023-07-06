@@ -1,26 +1,25 @@
-import { renderButton } from './layouts/button'
-import { getRandomInt, shuffle } from './functions'
-import { words } from './data'
+import {renderButton} from './layouts/button'
+import {getRandomInt, shuffle} from './functions'
+import {words} from './data'
 import './styles/index.css'
-import { renderGameIsOver } from './layouts/gameIsOver'
+import {renderGameIsOver} from './layouts/gameIsOver'
 
 class App {
   questionNumber: number = 0
   currentWord: string = null
   doneWords: string[] = []
   foundLetters: string[] = []
-  randomizedLetters: string[] = []
+  randomLetters: string[] = []
   gameLimit: number = 6
   mistakeLimit: number = 3
   mistakeCount: number = 0
 
   init() {
     this.setRandomWord()
-    const randomizedLetters = this.getRandomLetters()
-    this.randomizedLetters = randomizedLetters
-    this.renderButtons(randomizedLetters)
-    this.addEventListeners()
+    const randomLetters = this.getRandomLetters()
+    this.renderButtons(randomLetters)
     this.renderQuestionNumber()
+    this.addEventListeners()
   }
 
   renderQuestionNumber() {
@@ -48,40 +47,35 @@ class App {
 
   getRandomLetters() {
     const letters = this.currentWord.split('')
-    return shuffle(letters)
+    const randomLetters = shuffle(letters)
+    this.randomLetters = randomLetters
+    return randomLetters
   }
 
   renderButtons(letters: string[], renderAsError?: boolean) {
     this.mistakeCount = 0
 
-    let buttonArrayHtml = letters.map((el, idx) =>
-      renderButton(el, idx, renderAsError)
-    )
-    const elButtons = document.getElementById('buttons')
-    elButtons.innerHTML = buttonArrayHtml.join('')
+    const buttonArrayHtml = letters.map((el, idx) => {
+      return renderButton(el, idx, renderAsError)
+    })
+    const elButtonContainer = document.getElementById('buttons')
+    elButtonContainer.innerHTML = buttonArrayHtml.join('')
   }
 
   addEventListeners() {
     const buttons = document.querySelectorAll('.buttons__item')
     buttons.forEach((el: HTMLDivElement, idx: number) => {
-      el.addEventListener(
-        'click',
-        () => this.selectLetter(el.outerText, idx),
-        false
-      )
+      el.addEventListener('click', () => this.selectLetter(el.outerText, idx), false)
     })
 
-    document.addEventListener(
-      'keydown',
-      (event) => {
-        const name = event.key
-        this.selectLetter(name)
-      },
-      false
-    )
+    document.addEventListener('keydown', (event) => this.selectLetter(event.key), false)
   }
 
   selectLetter(letter: string, idx?: number) {
+    if (letter.length > 1) {
+      return
+    }
+
     const guessLetterIndex = this.foundLetters.length
 
     const index = idx ? idx : this.findFirstIndex(letter)
@@ -99,27 +93,31 @@ class App {
         this.setRandomWord()
         this.clearButtons()
 
-        const randomizedLetters = this.getRandomLetters()
-        this.randomizedLetters = randomizedLetters
-        this.renderButtons(randomizedLetters)
+        const randomLetters = this.getRandomLetters()
+        this.renderButtons(randomLetters)
         this.addEventListeners()
         this.foundLetters = []
+        this.renderQuestionNumber()
       }
-
-      this.mistakeCount = 0
     } else {
-      this.showError(letter, index)
       this.mistakeCount++
       if (this.mistakeCount === this.mistakeLimit) {
-        const lettersArray = this.currentWord.split('')
-        this.renderButtons(lettersArray, true)
+        const originalLetters = this.currentWord.split('')
+        this.randomLetters = originalLetters
+
+        this.clearButtons()
+        this.renderButtons(originalLetters, true)
         this.addEventListeners()
 
         const buttons = document.querySelectorAll('.buttons__item')
 
         setTimeout(() => {
-          buttons.forEach(el => el.classList.remove('buttons__item_err'))
+          buttons.forEach((el) => el.classList.remove('buttons__item_err'))
         }, 3000)
+
+        this.mistakeCount = 0
+      } else {
+        this.showError(letter, index)
       }
     }
   }
@@ -135,7 +133,7 @@ class App {
   }
 
   findFirstIndex(letter: string) {
-    return this.randomizedLetters.indexOf(letter)
+    return this.randomLetters.indexOf(letter)
   }
 
   showError(letter: string, idx: number) {
@@ -150,7 +148,15 @@ class App {
   }
 
   clearButtons() {
+    this.foundLetters = []
+
     const buttons = document.querySelectorAll('.buttons__item')
+    buttons.forEach((el: HTMLDivElement, idx: number) => {
+      el.removeEventListener('click', () => this.selectLetter(el.outerText, idx), false)
+    })
+
+    document.removeEventListener('keydown', (event) => this.selectLetter(event.key), false)
+
     buttons.forEach((el: HTMLDivElement) => el.remove())
   }
 
